@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lenovo Traffic Impact</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Lenovo Center Traffic Monitor</h1>
+        <p>Stay ahead of event-driven traffic around your house.</p>
+      </header>
+      
+      <main>
+        <div id="status">Loading events...</div>
+        
+        <section id="high-impact">
+          <h2>High Traffic Risk (Next 7 Days)</h2>
+          <div class="event-grid" id="urgent-events-grid"></div>
+        </section>
+
+        <section id="future-impact">
+          <h2>Upcoming Events</h2>
+          <div class="event-grid" id="upcoming-events-grid"></div>
+        </section>
+      </main>
+      
+      <footer>
+        <p>Data provided by Lenovo Center Calendar RSS</p>
+      </footer>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
