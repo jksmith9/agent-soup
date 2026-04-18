@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lenovo Traffic Impact</title>
+    <title>Lenovo Traffic Impact Calendar</title>
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,22 +13,19 @@
   <body>
     <div id="app">
       <header>
-        <h1>Lenovo Center Traffic Monitor</h1>
-        <p>Stay ahead of event-driven traffic around your house.</p>
+        <h1>Traffic Impact Calendar</h1>
+        <p>Lenovo Center Events — <span id="current-month-display"></span></p>
       </header>
       
       <main>
         <div id="status">Loading events...</div>
         
-        <section id="high-impact">
-          <h2>High Traffic Risk (Next 7 Days)</h2>
-          <div class="event-grid" id="urgent-events-grid"></div>
-        </section>
-
-        <section id="future-impact">
-          <h2>Upcoming Events</h2>
-          <div class="event-grid" id="upcoming-events-grid"></div>
-        </section>
+        <div id="calendar-container" class="hidden">
+           <div class="calendar-header">
+             <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+           </div>
+           <div id="calendar-grid" class="calendar-grid"></div>
+        </div>
       </main>
       
       <footer>

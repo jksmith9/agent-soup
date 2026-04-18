@@ -3,8 +3,8 @@ import { XMLParser } from 'fast-xml-parser';
 
 async function fetchEvents() {
   const statusEl = document.getElementById('status');
-  const urgentGrid = document.getElementById('urgent-events-grid');
-  const upcomingGrid = document.getElementById('upcoming-events-grid');
+  const calendarContainer = document.getElementById('calendar-container');
+  const calendarGrid = document.getElementById('calendar-grid');
   
   try {
     const res = await fetch('/api/events');
@@ -24,17 +24,15 @@ async function fetchEvents() {
         else items = [];
     }
     
-    if (!items.length) {
-      statusEl.textContent = 'No events currently scheduled.';
-      return;
-    }
-    
     const now = new Date();
-    // One week window for "High Traffic"
-    const oneWeekMs = 7 * 24 * 60 * 60 * 1000; 
+    // We only care about events in the CURRENT month/year
+    const currentMonth = now.getMonth(); 
+    const currentYear = now.getFullYear();
+    const headersDate = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(now);
+    document.getElementById('current-month-display').textContent = headersDate;
     
+    // Parse all events
     let events = items.map(item => {
-      // Carbonhouse RSS provides dc:date
       const dateString = item['ev:startdate'] || item['dc:date'] || item.pubDate;
       const eventDate = new Date(dateString);
       
@@ -46,69 +44,84 @@ async function fetchEvents() {
       };
     });
     
-    // Filter out past events
-    events = events.filter(e => e.date > now);
+    // Filter to JUST the current month according to the user's request.
+    events = events.filter(e => e.date.getMonth() === currentMonth && e.date.getFullYear() === currentYear);
     
-    // Sort chronologically
-    events.sort((a, b) => a.date - b.date);
+    // Group events by day of month
+    const eventsByDay = {};
+    events.forEach(e => {
+        const day = e.date.getDate();
+        if (!eventsByDay[day]) eventsByDay[day] = [];
+        eventsByDay[day].push(e);
+    });
     
-    const urgentEvents = events.filter(e => (e.date.getTime() - now.getTime()) <= oneWeekMs);
-    const upcomingEvents = events.filter(e => (e.date.getTime() - now.getTime()) > oneWeekMs);
+    // --- BUILD THE CALENDAR UI ---
     
+    // Get the first day of the month (0 = Sun, 1 = Mon...)
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    // Get total days in month
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    // Determine how many rows are needed
+    const totalCells = firstDay + daysInMonth;
+    const requiredRows = Math.ceil(totalCells / 7);
+    const totalSlotsToRender = requiredRows * 7;
+    
+    const todayNum = now.getDate();
+    const isCurrentMonthActual = true; // since currentMonth is initialized from now()
+
+    for (let i = 0; i < totalSlotsToRender; i++) {
+        const cell = document.createElement('div');
+        
+        if (i < firstDay || i >= firstDay + daysInMonth) {
+            // Empty cell outside the current month boundaries
+            cell.className = 'calendar-day empty';
+        } else {
+            // Valid day cell
+            const dayNumber = i - firstDay + 1;
+            cell.className = 'calendar-day';
+            
+            // Highlight today
+            if (isCurrentMonthActual && dayNumber === todayNum) {
+                cell.classList.add('today');
+            }
+            
+            const dayNumDiv = document.createElement('div');
+            dayNumDiv.className = 'day-number';
+            dayNumDiv.textContent = dayNumber;
+            cell.appendChild(dayNumDiv);
+            
+            // Add events for this day
+            if (eventsByDay[dayNumber] && eventsByDay[dayNumber].length > 0) {
+                cell.classList.add('has-events');
+                
+                // Sort by time
+                eventsByDay[dayNumber].sort((a,b) => a.date - b.date);
+                
+                eventsByDay[dayNumber].forEach(evt => {
+                    const badge = document.createElement('a');
+                    badge.href = evt.link;
+                    badge.target = '_blank';
+                    badge.className = 'event-badge';
+                    
+                    const timeStr = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(evt.date);
+                    
+                    badge.innerHTML = `<span class="event-time">${timeStr}</span> ${evt.title}`;
+                    cell.appendChild(badge);
+                });
+            }
+        }
+        calendarGrid.appendChild(cell);
+    }
+    
+    // Show calendar, hide status
     statusEl.classList.add('hidden');
-    
-    if (urgentEvents.length > 0) {
-      renderEvents(urgentGrid, urgentEvents, true);
-    } else {
-      document.getElementById('high-impact').classList.add('hidden');
-    }
-    
-    if (upcomingEvents.length > 0) {
-      renderEvents(upcomingGrid, upcomingEvents, false);
-    } else {
-      document.getElementById('future-impact').classList.add('hidden');
-    }
-    
+    calendarContainer.classList.remove('hidden');
+
   } catch (error) {
     statusEl.textContent = `Error loading events: ${error.message}`;
-    statusEl.style.color = '#ef4444';
+    statusEl.style.color = '#c0392b';
   }
-}
-
-function renderEvents(gridElement, events, isUrgent) {
-  const dateFormatter = new Intl.DateTimeFormat('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-  events.forEach((event, index) => {
-    const card = document.createElement('a');
-    card.href = event.link;
-    card.target = '_blank';
-    card.className = `event-card ${isUrgent ? 'high-risk' : ''}`;
-    // Limit animation delays
-    if (index > 5) card.style.animationDelay = '0.6s';
-    
-    const title = document.createElement('h3');
-    title.textContent = event.title;
-    
-    const dateLine = document.createElement('div');
-    dateLine.className = 'event-date';
-    dateLine.textContent = dateFormatter.format(event.date);
-    
-    const typeLabel = document.createElement('div');
-    typeLabel.className = 'event-type';
-    typeLabel.textContent = event.type;
-    
-    card.appendChild(typeLabel);
-    card.appendChild(title);
-    card.appendChild(dateLine);
-    
-    gridElement.appendChild(card);
-  });
 }
 
 fetchEvents();
