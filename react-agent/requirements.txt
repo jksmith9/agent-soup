@@ -1,0 +1,10 @@
+langchain>=0.1.13
+langchain-core>=0.1.33
+langchain-google-genai>=1.0.1
+langgraph>=0.0.30
+sec-edgar-downloader>=3.0.0
+beautifulsoup4>=4.12.3
+streamlit>=1.32.2
+python-dotenv>=1.0.1
+pinecone>=6.0.0
+langchain-pinecone>=0.2.0
